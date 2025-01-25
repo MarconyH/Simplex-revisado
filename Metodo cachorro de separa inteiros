@@ -1,0 +1,30 @@
+f = open("solucaounica.txt", "r")
+cr = []
+b = []
+cb = []
+num = ""
+C = [] #armazena função objetivo total
+A = [] #variaveis basicas e não basicas
+alpha = ""
+a1 = f.readline()
+
+for j in a1:
+    if(j.isalpha()):
+        alpha += j
+        if(alpha == "Max"):
+           o = 1;  #1 = max, 0 = min     
+        elif(alpha == "Min"):
+            o = 0
+
+    elif(j.isnumeric() or j == "-" or j == "."):
+        num += j
+    else:
+        if num:  ##pq ele enche o saco sendo que é pra estar vazio nesse caso? if chato;;;;
+            C.append(float(num))
+            num = ""
+C = np.array(C)
+print("FO antes: ", C)
+if(o == 1):
+    C = C * -1
+print("FO depois: ", C)
+##realizada separação da função objetivo do resto arquivo
