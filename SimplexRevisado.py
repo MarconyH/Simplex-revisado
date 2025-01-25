@@ -1,6 +1,7 @@
 import numpy as np
-Quan_R = 3 ## quantidade de linhas de restrições
-QuantV = 2  ##quantidade de variaveis
+global Quan_R, QuantV ## quantidade de linhas de restrições
+Quan_R = 0
+QuantV = 0  ##quantidade de variaveis
 
 f = open("solucaounica.txt", "r")
 cr = []
@@ -17,8 +18,8 @@ def BuscaInt(a_lin):
 
 def MaxOrMin(line):
     global Matriz
-    global C
-    C = np.delete(Matriz, (Quan_R-1, Quan_R -2), axis = 0)
+    global C, QuantV
+    C = np.delete(Matriz, (QuantV-1, QuantV -2), axis = 0)
     alpha = ""
     for j in line:
         if(j.isalpha()):
@@ -32,24 +33,26 @@ def MaxOrMin(line):
 def VarExcFol(line, linha_c):
     global A
     alpha = ""
-    global Matriz, QuantV
+    global Matriz, QuantV, Quan_R
     for j in line:
         if(j == "<"):
-            newcol = np.zeros(Quan_R)
-            new_M = np.insert(Matriz, QuantV, newcol, axis = 1)
-            new_M[linha_c][QuantV] = 1
-            QuantV +=1
+            newcol = np.zeros(QuantV)
+            print("New Col: ", newcol)
+            new_M = np.insert(Matriz, Quan_R, newcol, axis = 1)
+            new_M[linha_c][Quan_R] = 1
+            Quan_R +=1
             Matriz = np.array(new_M) 
         elif(j == ">"):
-            new_cols = np.zeros((QuantV, Quan_R))
-            A_new = np.insert(Matriz, QuantV, new_cols, axis = 1)
-            A_new[linha_c][QuantV] = -1
-            QuantV += 1
-            A_new[linha_c][QuantV] = 1
-            A_new[0][QuantV] = 1
+            new_cols = np.zeros((Quan_R, QuantV))
+            A_new = np.insert(Matriz, Quan_R, new_cols, axis = 1)
+            A_new[linha_c][Quan_R] = -1
+            Quan_R += 1
+            A_new[linha_c][Quan_R] = 1
+            A_new[0][Quan_R] = 1
             Matriz = np.array(A_new)
 
 def LerArquivo():
+    global Quan_R, QuantV
     lines = f.readlines()
     Restricoes = []
     for i in lines:
@@ -58,36 +61,37 @@ def LerArquivo():
             if("M" in i):
                 Fo = i
             else:
-                QuantR += 1
+                QuantV = len(i.replace("<", "").replace(">", "").replace("=", "").split())
+                Quan_R += 1
                 Restricoes.append(i)
-    return Restricoes
+    return (Restricoes, Fo)
 
-#LerArquivo()
+Restricoes, Fo = LerArquivo()
+Aux_Restricoes = []
+for i in range(len(Restricoes)):
+    Aux_Restricoes.insert(i, BuscaInt(Restricoes[i]))
 
-Fo = f.readline().strip()
-r1 = f.readline().strip()  ##pq eu não pesqisei antesaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa
-r2 = f.readline().strip() ##.strip() == remove espaços em branco e otras cositas se especificar
-
-a_lin1 = BuscaInt(r1)
-a_lin2 = BuscaInt(r2)
 aux_Fo = BuscaInt(Fo)
 
 Matriz = np.array([aux_Fo])
-Matriz = np.array([a_lin1, a_lin2])
+Matriz = np.array(Aux_Restricoes)
 
-b = np.delete(Matriz, (QuantV-1, QuantV -2), axis = 1)
+#Quantidade de Restrições é 2 e de variáveis é 3, no código anteior aqui usava  QuanV, mas QuanV estava valendo 2, quando na verdade vale 3
+#Por isso utilizei Quan_R no lugar, os números estavam trocados
+b = np.delete(Matriz, (Quan_R-1, Quan_R -2), axis = 1) 
+
 Matriz = np.delete(Matriz, 2, axis = 1)
 Matriz = np.insert(Matriz, 0, aux_Fo, axis = 0)
 
-######Colocando na forma padrão
-
 Fo = MaxOrMin(Fo)
+
 Matriz = np.delete(Matriz, 0, axis = 0)
 Matriz = np.insert(Matriz, 0, Fo, axis = 0)
-VarExcFol(r1, 1)
-VarExcFol(r2, 2)
 
-C = np.delete(Matriz, (Quan_R-1, Quan_R -2), axis = 0) #de novo pq atualizou a matriz possivelmenete
+for i in range(Quan_R):
+    VarExcFol(Restricoes[i], i+1)
+
+C = np.delete(Matriz, (QuantV-1, QuantV -2), axis = 0) #de novo pq atualizou a matriz possivelmenete
 
 print("Matriz b: \n", b)
 print("Matriz C: \n", C)
@@ -101,8 +105,8 @@ cols = np.where(C != 0 )[1]
 test = []
 def ProcurarColuna(cols):
     for j in cols:
-        for i in range(Quan_R):
-            if(len(test) < Quan_R):
+        for i in range(QuantV):
+            if(len(test) < QuantV):
                 test.append([Matriz[i][j]])
             else:
                 test[i].append(Matriz[i][j])
@@ -124,4 +128,3 @@ def EntrarBase():
         pass
 
 EntrarBase()
-
